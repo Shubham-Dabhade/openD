@@ -10,7 +10,7 @@ actor DKeeper{
   };
 
   ///creating a List to mention what to store in it
-  var notes : List.List<Note> = List.nil<Note>();
+  stable var notes : List.List<Note> = List.nil<Note>();
   //we are mentioning here to create a varible which is a list to store Note objects and at start the list should be empty(i.e nil<Note>())
 
 
@@ -33,5 +33,11 @@ actor DKeeper{
   };
 
 
-    
+    //deleting note from the list
+    public func removeNote(id:Nat){
+      //take drop append
+      let listFront= List.take(notes,id);
+      let listBack=List.drop(notes,id+1);
+      notes:=List.append(listFront,listBack);
+    }
 }
