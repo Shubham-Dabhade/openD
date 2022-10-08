@@ -1,13 +1,8 @@
 {
-  "name": "dkeeper_assets",
+  "name": "opend_assets",
   "version": "0.1.0",
-  "description": "Internet Computer starter application",
-  "keywords": [
-    "Internet Computer",
-    "Motoko",
-    "JavaScript",
-    "Canister"
-  ],
+  "description": "The Place to Buy and Sell NFTs on the Internet Computer",
+  "keywords": ["NFT", "OpenD"],
   "scripts": {
     "build": "webpack",
     "prebuild": "npm run copy:types",
@@ -16,25 +11,27 @@
     "copy:types": "rsync -avr .dfx/$(echo ${DFX_NETWORK:-'**'})/canisters/** --exclude='assets/' --exclude='idl/' --exclude='*.wasm' --delete src/declarations"
   },
   "devDependencies": {
-    "@dfinity/agent": "0.10.3",
-    "@dfinity/candid": "0.10.3",
-    "@dfinity/principal": "0.10.3",
-    "@material-ui/core": "4.6.1",
-    "@material-ui/icons": "4.5.1",
+    "@dfinity/agent": "0.14.0",
+    "@dfinity/candid": "0.14.0",
+    "@dfinity/principal": "0.14.0",
     "assert": "2.0.0",
     "buffer": "6.0.3",
-    "copy-webpack-plugin": "^10.2.4",
-    "css-loader": "^6.5.1",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
     "events": "3.3.0",
     "html-webpack-plugin": "5.5.0",
     "process": "0.11.10",
     "stream-browserify": "3.0.0",
     "style-loader": "^3.3.1",
-    "terser-webpack-plugin": "5.3.1",
+    "svg-url-loader": "^8.0.0",
+    "terser-webpack-plugin": "^5.3.3",
     "url-loader": "^4.1.1",
     "util": "0.12.4",
-    "webpack": "5.69.1",
-    "webpack-dev-server": "^4.4.0"
+    "webpack": "^5.73.0",
+    "webpack-dev-server": "^4.8.1"
+  },
+  "engines": {
+    "node": "^12 || ^14 || ^16 || ^18"
   },
   "browserslist": [
     "last 2 chrome version",
@@ -46,19 +43,15 @@
     "@dfinity/auth-client": "^0.14.0",
     "@dfinity/authentication": "^0.14.0",
     "@dfinity/identity": "^0.14.0",
-    "@material-ui/core": "4.6.1",
-    "@material-ui/icons": "4.5.1",
     "bootstrap": "^5.2.2",
     "lit-html": "^2.4.0",
-    "react": "^16.14.0",
+    "react": "^18.2.0",
     "react-bootstrap": "^2.5.0",
-    "react-dom": "^16.14.0",
+    "react-dom": "^18.2.0",
     "react-hook-form": "^7.37.0",
     "react-router-dom": "^6.4.2",
-    "react-scripts": "5.0.0",
     "ts-loader": "^9.4.1",
     "typescript": "^4.8.4",
-    "uuid": "8.3.2",
     "webpack-cli": "^4.10.0"
   }
 }

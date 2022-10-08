@@ -4,6 +4,10 @@
       "main": "src/dkeeper/main.mo",
       "type": "motoko"
     },
+    "nft": {
+      "main": "src/NFT/nft.mo",
+      "type": "motoko"
+    },
     "dkeeper_assets": {
       "dependencies": [
         "dkeeper"
