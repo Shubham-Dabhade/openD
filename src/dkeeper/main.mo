@@ -1,43 +1,24 @@
-import List "mo:base/List";
+import Principal "mo:base/Principal";
+import NFTActorClass "../NFT/nft";
+import Cycles "mo:base/ExperimentalCycles";
 import Debug "mo:base/Debug";
 
-actor DKeeper{
 
-  //creating a new data type to say the type of data to store
-  public type Note={
-    title:Text;
-    content:Text;
-  };
+actor OpenD{
 
-  ///creating a List to mention what to store in it
-  stable var notes : List.List<Note> = List.nil<Note>();
-  //we are mentioning here to create a varible which is a list to store Note objects and at start the list should be empty(i.e nil<Note>())
+  public shared(msg) func mint( imgData: [Nat8],name:Text): async Principal{
+    let owner: Principal = msg.caller;
 
 
-  public func createNote(titleText:Text,contentText:Text){
+    Debug.print(debug_show(Cycles.balance()));
+    //adding the cycles for creating and keeping the newly created canister running,locally it don't mind if we don't put any cycles but when we upload it on live icp blockchain it will require these cycles
+    Cycles.add(100_500_000_000);
+    let newNFT = await NFTActorClass.NFT(name, owner, imgData);
+    Debug.print(debug_show(Cycles.balance()));
 
-    //create a new note with type Note
-    let newNote:Note={
-      title=titleText;
-      content=contentText;
-    };
-
-    notes := List.push(newNote,notes);
-    Debug.print(debug_show(notes));
-  };
-
-
-  //to read all the notes from the Notes list
-  public query func readNotes():async [Note]{
-    return List.toArray(notes);
-  };
-
-
-    //deleting note from the list
-    public func removeNote(id:Nat){
-      //take drop append
-      let listFront= List.take(notes,id);
-      let listBack=List.drop(notes,id+1);
-      notes:=List.append(listFront,listBack);
-    }
+    let newNFTPrincipal = await newNFT.getCanisterId();
+    
+    return newNFTPrincipal;
+  }
+  
 }
