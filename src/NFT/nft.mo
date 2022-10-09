@@ -4,9 +4,9 @@ import Principal "mo:base/Principal";
 
 actor class NFT(name:Text,owner:Principal,content:[Nat8])=this{
 
-    let itemName=name;
-    let nftOwner=owner;
-    let imageBytes = content;
+    private let itemName=name;
+    private var nftOwner=owner;
+    private let imageBytes = content;
 
 
     //creating a query function to get the name of the nft
@@ -30,5 +30,19 @@ actor class NFT(name:Text,owner:Principal,content:[Nat8])=this{
         //if it was a normal actor we could have just provided the actor name(i.e fromActor(NFT)) but as it is a class we binded it to "this" and provided it
 
     };
+
+
+
+    //creating a transfer function 
+
+    public shared(msg) func transferOwnership(newOwner:Principal): async Text{
+        if(msg.caller == nftOwner){
+            nftOwner:=newOwner;
+            return "Success";
+        }
+        else{
+            return "Error: Not initiated by NFT owner";
+        }
+    }
 
 };

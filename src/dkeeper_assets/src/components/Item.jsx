@@ -3,12 +3,18 @@ import logo from "../../assets/logo.png";
 import { Actor,HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "../../../declarations/nft";
 import { Principal } from "@dfinity/principal";
+import Button from "./Button";
+import { dkeeper } from "../../../declarations/dkeeper";
 
 function Item(props) {
 
   const[name,setName]=useState();
   const[owner,setOwner]=useState();
   const [image,setImage]=useState();
+  const [button,setButton]=useState();
+  const [priceInput,setPriceInput]=useState();
+
+  
 
   const id=props.id;
 
@@ -16,10 +22,14 @@ function Item(props) {
   const localHost="http://localhost:8080/";
   const agent = new HttpAgent({host:localHost}); //so we created a new HttpAgent to make request using localhost
 
+  //TODO: When deploying, remove the following line
+  agent.fetchRootKey();
 
+
+  let NFTActor;
   //bringing in the nft canister
   async function loadNFT(){
-    const NFTActor = await Actor.createActor(idlFactory,{
+    NFTActor = await Actor.createActor(idlFactory,{
       agent,
       canisterId:id,
     });
@@ -35,7 +45,40 @@ function Item(props) {
     setName(name);
     setOwner(owner.toText());
     setImage(image);
+
+
+    setButton(<Button handleClick={handleSale} text={"Sell"}/>)
   };
+
+
+
+  let price;
+  //creating a function to be sent as a prop in the button for handeling sell
+  function handleSale(){
+    console.log("Sale clicked");
+    setPriceInput(<input
+      placeholder="Price in DANG"
+      type="number"
+      className="price-input"
+      value={price}
+      onChange={(e)=>price=e.target.value} 
+    />);
+
+    setButton(<Button handleClick={sellItem} text={"Confirm"}/>);
+  }
+
+  //creating a function to sell item
+  async function sellItem(){
+    console.log("confirm clicked"); 
+   const listingResult= await dkeeper.listItem(props.id,Number(price));
+   console.log("Listing: "+listingResult);
+   if(listingResult=="Success"){
+    const openDId= await dkeeper.getOpenDCanisterID();
+    const transferResult=await NFTActor.transferOwnership(openDId);
+    console.log(transferResult);
+   }
+  }
+
 
 
   useEffect(()=>{
@@ -57,6 +100,8 @@ function Item(props) {
           <p className="disTypography-root makeStyles-bodyText-24 disTypography-body2 disTypography-colorTextSecondary">
             Owner: {owner}
           </p>
+          {priceInput}
+          {button}
         </div>
       </div>
     </div>

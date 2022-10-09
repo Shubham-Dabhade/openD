@@ -9,12 +9,21 @@ import Iter "mo:base/Iter";
 
 actor OpenD{
 
+  //creating a private type to store items Owner and Price info
+
+  private type Listing={
+    itemOwner:Principal;
+    itemPrice:Nat;
+  };
+
 
 //creating a new data store to keep track of newly minted nfts
   var mapOfNFts = HashMap.HashMap<Principal,NFTActorClass.NFT>(1,Principal.equal,Principal.hash);
 //creating the store for storing the owner of nfts
 var mapOfOwners= HashMap.HashMap<Principal,List.List<Principal>>(1,Principal.equal,Principal.hash);//unlike the hashmap of nfts for owner we need to create a list of nfts linked to a single key of the user as a user can own multiple nft's
 
+//creating a hashmap which will keep track of listings of the nfts to be sold
+var mapOfListings=HashMap.HashMap<Principal,Listing>(1,Principal.equal,Principal.hash);
 
 
 //creating a function to mint nfts taking in the required data
@@ -69,5 +78,36 @@ var mapOfOwners= HashMap.HashMap<Principal,List.List<Principal>>(1,Principal.equ
       }; 
 
       return List.toArray(userNFTs);
-    }
+    };
+
+
+    //creating a function for nfts to be sold in a list
+    public shared(msg) func listItem(id:Principal,price:Nat): async Text{
+      var item: NFTActorClass.NFT= switch (mapOfNFts.get(id)){
+        case null return "NFT does not exist";
+        case (?result) result;
+      };
+
+      //checking whether the user making the request to list nft is present in mapOwner if not means he/she is not the owner
+      let owner = await item.getOwner();
+      if(Principal.equal(owner,msg.caller)){
+        let newListing:Listing={
+          itemOwner=owner;
+          itemPrice=price;
+        };
+        mapOfListings.put(id,newListing);
+        return "Success";
+      }else{
+        return "Your don't own the nft";
+
+      }
+
+    };
+
+
+    //getting the canister id of this opend actor
+
+    public query func getOpenDCanisterID() : async Principal{
+      return Principal.fromActor(OpenD);
+    };
 }
