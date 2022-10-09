@@ -10,7 +10,7 @@ function Item(props) {
   const[owner,setOwner]=useState();
   const [image,setImage]=useState();
 
-  const id=Principal.fromText(props.id);
+  const id=props.id;
 
   //creating http to fetch the nft canister on frontend
   const localHost="http://localhost:8080/";
@@ -40,6 +40,7 @@ function Item(props) {
 
   useEffect(()=>{
     loadNFT();
+    console.log("inside load nft");
   },[])
 
   return (
