@@ -10,12 +10,17 @@ import CURRENT_USER_ID from "../index";
 function Header() {
 
   const [useOwnedGallery,setOwnedGallery]=useState();
+  const [listingGallery,setListingGallery]=useState()
 
   async function getNFTs(){
     console.log(CURRENT_USER_ID);
     const userNFTIds=await dkeeper.getOwnedNFTs(CURRENT_USER_ID);
     console.log(userNFTIds);
-    setOwnedGallery(<Gallery title="My NFT's" ids={userNFTIds}/>)
+    setOwnedGallery(<Gallery title="My NFT's" ids={userNFTIds} role={"collection"}/>)
+
+    const listedNFTIds = await dkeeper.getListedNFTs();
+    console.log(listedNFTIds);
+    setListingGallery(<Gallery title="Discover" ids={listedNFTIds} role={"discover"}/>);
   };
 
 
@@ -61,7 +66,7 @@ function Header() {
     </div>
     <Routes>
       <Route exact path="/" element={<img className="bottom-space" src={homeImage} />}/>
-      <Route exact path="/discover" element={ <h1>Discover</h1>}/>
+      <Route exact path="/discover" element={listingGallery}/>
       <Route exact path="/minter" element={<Minter/>}/>
       <Route exact path="/collection" element={useOwnedGallery}/>
     </Routes>

@@ -80,6 +80,13 @@ var mapOfListings=HashMap.HashMap<Principal,Listing>(1,Principal.equal,Principal
       return List.toArray(userNFTs);
     };
 
+  //creating a function to get list of the listed nfts
+  public query func getListedNFTs(): async [Principal]{
+    let ids = Iter.toArray(mapOfListings.keys());
+    return ids;
+  };
+
+
 
     //creating a function for nfts to be sold in a list
     public shared(msg) func listItem(id:Principal,price:Nat): async Text{
@@ -110,4 +117,38 @@ var mapOfListings=HashMap.HashMap<Principal,Listing>(1,Principal.equal,Principal
     public query func getOpenDCanisterID() : async Principal{
       return Principal.fromActor(OpenD);
     };
+
+
+
+    //creating a function to check whether a nft is listed or not
+    public query func isListed(id:Principal):async Bool{
+      if(mapOfListings.get(id)==null){
+        return false;
+      }
+      else{
+        return true;
+      }
+    };
+
+
+    //creating a function to get the original owner of a particular nft
+    public query func getOriginalOwner(id:Principal): async Principal{
+      var listing:Listing = switch (mapOfListings.get(id)){
+        case null return Principal.fromText("");
+        case (?result) result;
+      };
+
+      return listing.itemOwner;
+    };
+
+    //creating a function to get the listed nft price
+    public query func getNFTPrice(id:Principal):async Nat{
+      var listedNFT:Listing= switch(mapOfListings.get(id)){
+        case null return 0;
+        case (?result) result;
+      };
+
+      return listedNFT.itemPrice;
+    }
+
 }

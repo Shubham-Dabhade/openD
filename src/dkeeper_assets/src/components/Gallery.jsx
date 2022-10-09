@@ -11,7 +11,7 @@ function Gallery(props) {
     if(props.ids !=undefined){
       setItems(
         props.ids.map((NFTID)=>{
-          return <Item id={NFTID} key={NFTID.toText()}/>
+          return <Item id={NFTID} key={NFTID.toText()} role={props.role}/>
         })
       )
     }
