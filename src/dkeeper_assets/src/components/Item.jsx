@@ -1,7 +1,8 @@
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../../assets/logo.png";
-import { Actor,HttpAgent } from "@dfinity/agent";
+import { Actor, HttpAgent } from "@dfinity/agent";
 import { idlFactory } from "../../../declarations/nft";
+import { idlFactory as tokenIdlFactory } from "../../../declarations/token";
 import { Principal } from "@dfinity/principal";
 import Button from "./Button";
 import { dkeeper } from "../../../declarations/dkeeper";
@@ -10,23 +11,23 @@ import PriceLable from "./PriceLabel";
 
 function Item(props) {
 
-  const[name,setName]=useState();
-  const[owner,setOwner]=useState();
-  const [image,setImage]=useState();
-  const [button,setButton]=useState();
-  const [priceInput,setPriceInput]=useState();
-  const [loaderHidden,setLoaderHidden]=useState(true);
-  const [blur,setBlur]=useState();
-  const [sellStatus,setSellStatus]=useState("");
-  const [priceLable,setPriceLabel]=useState();
+  const [name, setName] = useState();
+  const [owner, setOwner] = useState();
+  const [image, setImage] = useState();
+  const [button, setButton] = useState();
+  const [priceInput, setPriceInput] = useState();
+  const [loaderHidden, setLoaderHidden] = useState(true);
+  const [blur, setBlur] = useState();
+  const [sellStatus, setSellStatus] = useState("");
+  const [priceLable, setPriceLabel] = useState();
 
-  
 
-  const id=props.id;
+
+  const id = props.id;
 
   //creating http to fetch the nft canister on frontend
-  const localHost="http://localhost:8080/";
-  const agent = new HttpAgent({host:localHost}); //so we created a new HttpAgent to make request using localhost
+  const localHost = "http://localhost:8080/";
+  const agent = new HttpAgent({ host: localHost }); //so we created a new HttpAgent to make request using localhost
 
   //TODO: When deploying, remove the following line
   agent.fetchRootKey();
@@ -35,39 +36,39 @@ function Item(props) {
   let NFTActor;
 
   //bringing in the nft canister
-  async function loadNFT(){
-    NFTActor = await Actor.createActor(idlFactory,{
+  async function loadNFT() {
+    NFTActor = await Actor.createActor(idlFactory, {
       agent,
-      canisterId:id,
+      canisterId: id,
     });
     const name = await NFTActor.getName();
     const owner = await NFTActor.getOwner();
     const imageData = await NFTActor.getAsset();
     const imageContent = new Uint8Array(imageData);
     const image = URL.createObjectURL(
-      new Blob([imageContent.buffer],{type: "image/png"})
+      new Blob([imageContent.buffer], { type: "image/png" })
     );
     setName(name);
     setOwner(owner.toText());
     setImage(image);
-    if(props.role=="collection"){
+    if (props.role == "collection") {
       const nftIsListed = await dkeeper.isListed(props.id);
-      if(nftIsListed){
+      if (nftIsListed) {
         setOwner("OpenD");
-        setBlur({filter:"blur(4px)"});
+        setBlur({ filter: "blur(4px)" });
         setSellStatus("Listed");
-      }else{
-        setButton(<Button handleClick={handleSale} text={"Sell"}/>)
+      } else {
+        setButton(<Button handleClick={handleSale} text={"Sell"} />)
       }
-    }else if(props.role=="discover"){
-      const originalOwner= await dkeeper.getOriginalOwner(props.id);
-      if(originalOwner.toText() != CURRENT_USER_ID.toText()){
-        setButton(<Button handleClick={handleBuy} text={"Buy"}/>)
+    } else if (props.role == "discover") {
+      const originalOwner = await dkeeper.getOriginalOwner(props.id);
+      if (originalOwner.toText() != CURRENT_USER_ID.toText()) {
+        setButton(<Button handleClick={handleBuy} text={"Buy"} />)
       }
 
-      const price= await dkeeper.getNFTPrice(props.id);
+      const price = await dkeeper.getNFTPrice(props.id);
       console.log(price);
-      setPriceLabel(<PriceLable sellPrice={price.toString()}/>);
+      setPriceLabel(<PriceLable sellPrice={price.toString()} />);
 
 
     }
@@ -76,9 +77,27 @@ function Item(props) {
 
 
   //creating a function to buy nfts
-  async function handleBuy(){
-
+  async function handleBuy() {
+    setLoaderHidden(false);
     console.log("Buy");
+
+
+    const tokenActor = await Actor.createActor(tokenIdlFactory, {
+      agent,
+      canisterId: Principal.fromText("rrkah-fqaaa-aaaaa-aaaaq-cai"),
+    });
+
+    const sellerId = await dkeeper.getOriginalOwner(props.id);
+    const itemPrice = await dkeeper.getNFTPrice(props.id);
+
+    const result = await tokenActor.transfer(sellerId, itemPrice);
+    console.log(result);
+
+    //transfering the ownership
+    if (result == "Success") {
+      const transferResult = await dkeeper.completePurchase(props.id, sellerId, CURRENT_USER_ID);
+      console.log("purchase:" + transferResult);
+    }
   }
 
 
@@ -86,47 +105,47 @@ function Item(props) {
   let price;
 
   //creating a function to be sent as a prop in the button for handeling sell
-  function handleSale(){
+  function handleSale() {
     console.log("Sale clicked");
     setPriceInput(<input
       placeholder="Price in DANG"
       type="number"
       className="price-input"
       value={price}
-      onChange={(e)=>price=e.target.value} 
+      onChange={(e) => price = e.target.value}
     />);
 
-    setButton(<Button handleClick={sellItem} text={"Confirm"}/>);
+    setButton(<Button handleClick={sellItem} text={"Confirm"} />);
   }
 
   //creating a function to sell item
-  async function sellItem(){
-    setBlur({filter:"blur(4px)"});
+  async function sellItem() {
+    setBlur({ filter: "blur(4px)" });
     setLoaderHidden(false);
-    console.log("confirm clicked"); 
-   const listingResult= await dkeeper.listItem(props.id,Number(price));
-   console.log("Listing: "+listingResult);
-   if(listingResult=="Success"){
-    const openDId= await dkeeper.getOpenDCanisterID();
-    const transferResult=await NFTActor.transferOwnership(openDId);
-    console.log(transferResult);
-    if(transferResult=="Success"){
-      setLoaderHidden(true);
-      setButton();
-      setPriceInput();
-      setOwner("OpenD");
-      setSellStatus("Listed");
+    console.log("confirm clicked");
+    const listingResult = await dkeeper.listItem(props.id, Number(price));
+    console.log("Listing: " + listingResult);
+    if (listingResult == "Success") {
+      const openDId = await dkeeper.getOpenDCanisterID();
+      const transferResult = await NFTActor.transferOwnership(openDId);
+      console.log(transferResult);
+      if (transferResult == "Success") {
+        setLoaderHidden(true);
+        setButton();
+        setPriceInput();
+        setOwner("OpenD");
+        setSellStatus("Listed");
+      }
     }
-   }
 
   }
 
 
 
-  useEffect(()=>{
+  useEffect(() => {
     loadNFT();
     console.log("inside load nft");
-  },[])
+  }, [])
 
   return (
     <div className="disGrid-item">
@@ -143,7 +162,7 @@ function Item(props) {
           <div></div>
         </div>
         <div className="disCardContent-root">
-        {priceLable}
+          {priceLable}
           <h2 className="disTypography-root makeStyles-bodyText-24 disTypography-h5 disTypography-gutterBottom">
             {name}<span className="purple-text"> {sellStatus}</span>
           </h2>
